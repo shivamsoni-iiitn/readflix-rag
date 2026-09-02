@@ -2,7 +2,6 @@ const API_URL = "/query";
 const LOGO_URL = "/static/images/readflix-logo.png";
 
 const chatMessages = document.getElementById("chatMessages");
-const emptyState = document.getElementById("emptyState");
 const messageInput = document.getElementById("messageInput");
 const sendBtn = document.getElementById("sendBtn");
 const sendIcon = document.getElementById("sendIcon");
@@ -10,7 +9,12 @@ const sendLoader = document.getElementById("sendLoader");
 const typingIndicator = document.getElementById("typingIndicator");
 const newChatBtn = document.getElementById("newChatBtn");
 
-let threadId = sessionStorage.getItem("readflix_thread_id");
+let activeRequestController = null;
+let activeRequestId = 0;
+
+let threadId = sessionStorage.getItem(
+    "readflix_thread_id"
+);
 
 if (!threadId) {
     threadId = crypto.randomUUID();
@@ -26,17 +30,37 @@ if (!threadId) {
    ========================================================= */
 
 async function sendMessage() {
-    const question = messageInput.value.trim();
+    const question =
+        messageInput.value.trim();
 
     if (!question || sendBtn.disabled) {
         return;
     }
 
-    if (emptyState) {
-        emptyState.remove();
+    const requestThreadId = threadId;
+
+    const requestId =
+        ++activeRequestId;
+
+    const controller =
+        new AbortController();
+
+    activeRequestController =
+        controller;
+
+    const currentEmptyState =
+        document.getElementById(
+            "emptyState"
+        );
+
+    if (currentEmptyState) {
+        currentEmptyState.remove();
     }
 
-    addMessage("user", question);
+    addMessage(
+        "user",
+        question
+    );
 
     messageInput.value = "";
 
@@ -45,18 +69,26 @@ async function sendMessage() {
     setLoading(true);
 
     try {
-        const response = await fetch(API_URL, {
-            method: "POST",
+        const response = await fetch(
+            API_URL,
+            {
+                method: "POST",
 
-            headers: {
-                "Content-Type": "application/json",
-            },
+                headers: {
+                    "Content-Type":
+                        "application/json",
+                },
 
-            body: JSON.stringify({
-                q: question,
-                thread_id: threadId,
-            }),
-        });
+                body: JSON.stringify({
+                    q: question,
+                    thread_id:
+                        requestThreadId,
+                }),
+
+                signal:
+                    controller.signal,
+            }
+        );
 
         let data = {};
 
@@ -67,7 +99,9 @@ async function sendMessage() {
         }
 
         if (response.status === 429) {
-            throw new Error("RATE_LIMIT");
+            throw new Error(
+                "RATE_LIMIT"
+            );
         }
 
         if (!response.ok) {
@@ -75,6 +109,17 @@ async function sendMessage() {
                 data.detail ||
                 `HTTP ${response.status}`
             );
+        }
+
+        /*
+         * Ignore the response if the user
+         * already started a new conversation.
+         */
+        if (
+            requestId !==
+            activeRequestId
+        ) {
+            return;
         }
 
         const answer =
@@ -87,15 +132,35 @@ async function sendMessage() {
         );
 
     } catch (error) {
+
+        if (
+            error.name ===
+            "AbortError"
+        ) {
+            return;
+        }
+
+        /*
+         * Ignore errors belonging to
+         * an old conversation.
+         */
+        if (
+            requestId !==
+            activeRequestId
+        ) {
+            return;
+        }
+
         console.error(
             "Request failed:",
             error
         );
 
         const message =
-            error.message === "RATE_LIMIT"
+            error.message ===
+            "RATE_LIMIT"
                 ? "You're sending messages too quickly. Please try again in a moment."
-                : "I couldn't connect now. Please try again.";
+                : "I couldn't connect to the READFLIX backend. Please try again.";
 
         addMessage(
             "assistant",
@@ -103,7 +168,20 @@ async function sendMessage() {
         );
 
     } finally {
-        setLoading(false);
+
+        /*
+         * Only the currently active request
+         * is allowed to change loading state.
+         */
+        if (
+            requestId ===
+            activeRequestId
+        ) {
+            activeRequestController =
+                null;
+
+            setLoading(false);
+        }
     }
 }
 
@@ -111,7 +189,10 @@ async function sendMessage() {
    ADD MESSAGE
    ========================================================= */
 
-function addMessage(role, content) {
+function addMessage(
+    role,
+    content
+) {
     const message =
         document.createElement("div");
 
@@ -129,9 +210,12 @@ function addMessage(role, content) {
         }`;
 
     if (role === "user") {
-        avatar.textContent = "You";
+
+        avatar.textContent =
+            "You";
 
     } else {
+
         const logo =
             document.createElement("img");
 
@@ -140,16 +224,12 @@ function addMessage(role, content) {
         logo.alt =
             "READFLIX Assistant";
 
-        logo.style.cssText =
-            "width:34px;" +
-            "height:34px;" +
-            "max-width:34px;" +
-            "max-height:34px;" +
-            "border-radius:8px;" +
-            "object-fit:cover;" +
-            "display:block;";
+        logo.className =
+            "message-avatar-image";
 
-        avatar.appendChild(logo);
+        avatar.appendChild(
+            logo
+        );
     }
 
     const wrapper =
@@ -165,27 +245,41 @@ function addMessage(role, content) {
         "message-content";
 
     if (role === "assistant") {
-        if (typeof marked !== "undefined") {
+
+        if (
+            typeof marked !==
+            "undefined"
+        ) {
+
             const rendered =
-                marked.parse(content);
+                marked.parse(
+                    content
+                );
 
             if (
                 typeof DOMPurify !==
                 "undefined"
             ) {
+
                 contentElement.innerHTML =
                     DOMPurify.sanitize(
                         rendered
                     );
+
             } else {
+
                 contentElement.textContent =
                     content;
             }
+
         } else {
+
             contentElement.textContent =
                 content;
         }
+
     } else {
+
         contentElement.textContent =
             content;
     }
@@ -194,17 +288,27 @@ function addMessage(role, content) {
         contentElement
     );
 
-    if (role === "assistant") {
+    if (
+        role === "assistant"
+    ) {
         wrapper.appendChild(
-            createMessageActions(content)
+            createMessageActions(
+                content
+            )
         );
     }
 
-    message.appendChild(avatar);
+    message.appendChild(
+        avatar
+    );
 
-    message.appendChild(wrapper);
+    message.appendChild(
+        wrapper
+    );
 
-    chatMessages.appendChild(message);
+    chatMessages.appendChild(
+        message
+    );
 
     scrollToBottom();
 }
@@ -213,7 +317,9 @@ function addMessage(role, content) {
    MESSAGE ACTIONS
    ========================================================= */
 
-function createMessageActions(content) {
+function createMessageActions(
+    content
+) {
     const actions =
         document.createElement("div");
 
@@ -221,19 +327,23 @@ function createMessageActions(content) {
         "message-actions";
 
     const copyBtn =
-        document.createElement("button");
+        document.createElement(
+            "button"
+        );
 
     copyBtn.className =
         "action-btn";
 
     copyBtn.type = "button";
 
-    copyBtn.textContent = "Copy";
+    copyBtn.textContent =
+        "Copy";
 
     copyBtn.addEventListener(
         "click",
         async () => {
             try {
+
                 await navigator.clipboard.writeText(
                     content
                 );
@@ -247,6 +357,7 @@ function createMessageActions(content) {
                 }, 1500);
 
             } catch (error) {
+
                 console.error(
                     "Copy failed:",
                     error
@@ -255,7 +366,9 @@ function createMessageActions(content) {
         }
     );
 
-    actions.appendChild(copyBtn);
+    actions.appendChild(
+        copyBtn
+    );
 
     return actions;
 }
@@ -264,7 +377,9 @@ function createMessageActions(content) {
    LOADING
    ========================================================= */
 
-function setLoading(loading) {
+function setLoading(
+    loading
+) {
     sendBtn.disabled =
         loading;
 
@@ -298,8 +413,10 @@ function scrollToBottom() {
     }
 
     requestAnimationFrame(() => {
+
         chatMessages.scrollTop =
             chatMessages.scrollHeight;
+
     });
 }
 
@@ -308,6 +425,7 @@ function scrollToBottom() {
    ========================================================= */
 
 function autoResizeTextarea() {
+
     messageInput.style.height =
         "auto";
 
@@ -324,6 +442,7 @@ function autoResizeTextarea() {
 }
 
 function resetInput() {
+
     messageInput.value = "";
 
     autoResizeTextarea();
@@ -338,10 +457,12 @@ function resetInput() {
 messageInput.addEventListener(
     "keydown",
     (event) => {
+
         if (
             event.key === "Enter" &&
             !event.shiftKey
         ) {
+
             event.preventDefault();
 
             sendMessage();
@@ -368,14 +489,17 @@ sendBtn.addEventListener(
    ========================================================= */
 
 function bindQuickPrompts() {
+
     document
         .querySelectorAll(
             ".quick-prompts button"
         )
         .forEach((button) => {
+
             button.addEventListener(
                 "click",
                 () => {
+
                     messageInput.value =
                         button.dataset.prompt;
 
@@ -396,15 +520,28 @@ bindQuickPrompts();
 newChatBtn.addEventListener(
     "click",
     () => {
-        const confirmed =
-            confirm(
-                "Start a new conversation?"
-            );
 
-        if (!confirmed) {
-            return;
+        /*
+         * Invalidate every previous request.
+         */
+        activeRequestId++;
+
+        /*
+         * Cancel the currently running request.
+         */
+        if (
+            activeRequestController
+        ) {
+
+            activeRequestController.abort();
+
+            activeRequestController =
+                null;
         }
 
+        /*
+         * Generate a completely new thread.
+         */
         threadId =
             crypto.randomUUID();
 
@@ -413,16 +550,22 @@ newChatBtn.addEventListener(
             threadId
         );
 
+        /*
+         * Reset UI.
+         */
         chatMessages.innerHTML = `
             <div
                 id="emptyState"
                 class="empty-state"
             >
+
                 <div class="empty-icon">
+
                     <img
                         src="${LOGO_URL}"
                         alt=""
                     >
+
                 </div>
 
                 <h2>
@@ -465,10 +608,13 @@ newChatBtn.addEventListener(
                     </button>
 
                 </div>
+
             </div>
         `;
 
         bindQuickPrompts();
+
+        setLoading(false);
 
         resetInput();
 
@@ -476,6 +622,9 @@ newChatBtn.addEventListener(
     }
 );
 
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
 
 window.addEventListener(
     "resize",
@@ -485,11 +634,17 @@ window.addEventListener(
 window.addEventListener(
     "orientationchange",
     () => {
+
         setTimeout(
             autoResizeTextarea,
             100
         );
+
     }
 );
+
+/* =========================================================
+   INITIALIZE
+   ========================================================= */
 
 autoResizeTextarea();
