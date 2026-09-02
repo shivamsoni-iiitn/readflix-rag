@@ -6,8 +6,7 @@ logfire.configure(token=os.getenv("LOGFIRE_TOKEN"))
 
 # Now safe to import app modules - logfire is already active
 from fastapi import FastAPI, Response
-from app.agents.graph import rag_agent
-
+from app.agents.graph import rag_agent, checkpointer
 from pydantic import BaseModel
 from typing import Optional
 from fastapi.templating import Jinja2Templates
@@ -98,4 +97,24 @@ async def query(request: Request, data: QueryRequest):
             "question": q,
             "answer": "I’m not able to answer that right now. Please try again in a moment.",
             "status": "error",
+        }
+        
+@app.delete("/thread/{thread_id}")
+async def delete_thread(thread_id: str):
+    try:
+        await checkpointer.adelete_thread(thread_id)
+        logfire.info(
+            "🗑️ Thread deleted",
+            thread_id=thread_id,
+        )
+
+        return {
+            "status": "deleted"
+        }
+
+    except Exception:
+        logfire.exception("❌ Thread deletion failed")
+
+        return {
+            "status": "error"
         }

@@ -519,7 +519,12 @@ bindQuickPrompts();
 
 newChatBtn.addEventListener(
     "click",
-    () => {
+    async () => {
+
+        /*
+         * Save the old thread before creating a new one.
+         */
+        const oldThreadId = threadId;
 
         /*
          * Invalidate every previous request.
@@ -529,21 +534,32 @@ newChatBtn.addEventListener(
         /*
          * Cancel the currently running request.
          */
-        if (
-            activeRequestController
-        ) {
-
+        if (activeRequestController) {
             activeRequestController.abort();
+            activeRequestController = null;
+        }
 
-            activeRequestController =
-                null;
+        /*
+         * Delete old thread from backend memory.
+         */
+        try {
+            await fetch(
+                `${API_URL.replace("/query", "")}/thread/${encodeURIComponent(oldThreadId)}`,
+                {
+                    method: "DELETE",
+                }
+            );
+        } catch (error) {
+            console.error(
+                "Thread deletion failed:",
+                error
+            );
         }
 
         /*
          * Generate a completely new thread.
          */
-        threadId =
-            crypto.randomUUID();
+        threadId = crypto.randomUUID();
 
         sessionStorage.setItem(
             "readflix_thread_id",
@@ -558,14 +574,11 @@ newChatBtn.addEventListener(
                 id="emptyState"
                 class="empty-state"
             >
-
                 <div class="empty-icon">
-
                     <img
                         src="${LOGO_URL}"
                         alt=""
                     >
-
                 </div>
 
                 <h2>
@@ -608,23 +621,17 @@ newChatBtn.addEventListener(
                     </button>
 
                 </div>
-
             </div>
         `;
 
         bindQuickPrompts();
 
         setLoading(false);
-
         resetInput();
-
         chatMessages.scrollTop = 0;
     }
 );
 
-/* =========================================================
-   RESPONSIVE
-   ========================================================= */
 
 window.addEventListener(
     "resize",
@@ -642,6 +649,21 @@ window.addEventListener(
 
     }
 );
+window.addEventListener("pagehide", () => {
+    if (!threadId) {
+        return;
+    }
+
+    fetch(
+        `${API_URL.replace("/query", "")}/thread/${encodeURIComponent(threadId)}`,
+        {
+            method: "DELETE",
+            keepalive: true,
+        }
+    ).catch(() => {});
+
+    sessionStorage.removeItem("readflix_thread_id");
+});
 
 /* =========================================================
    INITIALIZE
