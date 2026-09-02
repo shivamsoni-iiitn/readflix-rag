@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#07111f">
+
+    <title>READFLIX Library Assistant</title>
+    <link
+        rel="icon"
+        type="image/png"
+        href="{{ url_for('static', path='images/top.png') }}"
+    >
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', path='style.css') }}"
+    >
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.3.0/dist/purify.min.js"></script>
+</head>
+
+<body>
+    <div class="page-bg" aria-hidden="true">
+        <div class="gradient-circle circle-1"></div>
+        <div class="gradient-circle circle-2"></div>
+        <div class="gradient-circle circle-3"></div>
+    </div>
+
+    <div class="app-container">
+
+        <header class="hero-section">
+            <div class="badge">
+                <span class="badge-logo">
+                    <img
+                        src="{{ url_for('static', path='images/readflix-logo.png') }}"
+                        alt="READFLIX"
+                        style="width:26px; height:26px; border-radius:8px; object-fit:cover; display:block;"
+                    >
+                </span>
+
+                <span class="status-dot"></span>
+                <span>READFLIX AI</span>
+            </div>
+
+            <h1>Library Assistant</h1>
+
+            <p>
+                Ask about READFLIX Library timings, membership,
+                facilities, seating, rules and more.
+            </p>
+        </header>
+
+        <main class="chat-card">
+
+            <div class="chat-header">
+                <div class="assistant-info">
+                    <div class="assistant-avatar">
+                        <img
+                            src="{{ url_for('static', path='images/readflix-logo.png') }}"
+                            alt="READFLIX Assistant"
+                            style="width:35px; height:35px; border-radius:12px; object-fit:cover; display:block;"
+                        >
+                    </div>
+
+                    <div class="assistant-details">
+                        <h2>READFLIX Assistant</h2>
+
+                        <div class="online-status">
+                            <span class="online-dot"></span>
+                            <span>Online</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button
+                    id="newChatBtn"
+                    class="new-chat-btn"
+                    type="button"
+                    title="Start a new conversation"
+                >
+                    <span class="new-chat-icon">+</span>
+                    <span>New chat</span>
+                </button>
+            </div>
+
+            <div id="chatMessages" class="chat-messages">
+
+                <div id="emptyState" class="empty-state">
+                    <div class="empty-icon">
+                        <img
+                            src="{{ url_for('static', path='images/readflix-logo.png') }}"
+                            alt=""
+                            style="width:42px; height:42px; border-radius:12px; object-fit:cover; display:block;"
+                        >
+                    </div>
+
+                    <h2>How can I help you?</h2>
+
+                    <p>Ask me anything about READFLIX Library.</p>
+
+                    <div class="quick-prompts">
+                        <button type="button" data-prompt="How many seats are available in the library?">
+                            How many seats are available?
+                        </button>
+
+                        <button type="button" data-prompt="What are the library opening hours?">
+                            What are the opening hours?
+                        </button>
+
+                        <button type="button" data-prompt="Can I borrow books from the library?">
+                            Can I borrow books?
+                        </button>
+
+                        <button type="button" data-prompt="Is Wi-Fi available in the library?">
+                            Is Wi-Fi available?
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <div id="typingIndicator" class="typing-indicator hidden">
+                <div class="message-avatar assistant-avatar">
+                    <img
+                        src="{{ url_for('static', path='images/readflix-logo.png') }}"
+                        alt="READFLIX Assistant"
+                        style="width:34px; height:34px; max-width:34px; max-height:34px; border-radius:8px; object-fit:cover; display:block;"
+                    >
+                </div>
+
+                <div class="typing-content">
+                    <span>READFLIX is thinking</span>
+
+                    <div class="typing-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="composer-wrapper">
+                <div class="composer">
+                    <textarea
+                        id="messageInput"
+                        rows="1"
+                        maxlength="2000"
+                        placeholder="Ask something about READFLIX..."
+                        autocomplete="off"
+                        aria-label="Message"
+                    ></textarea>
+
+                    <button
+                        id="sendBtn"
+                        class="send-btn"
+                        type="button"
+                        title="Send message"
+                        aria-label="Send message"
+                    >
+                        <span id="sendIcon">➤</span>
+                        <span id="sendLoader" class="loader hidden"></span>
+                    </button>
+                </div>
+
+                <div class="composer-footer">
+                    <span class="footer-hint">
+                        Enter to send · Shift + Enter for new line
+                    </span>
+
+                    <span id="threadInfo">
+                        Session active
+                    </span>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            READFLIX Library Assistant
+        </footer>
+
+    </div>
+
+    <script src="{{ url_for('static', path='app.js') }}"></script>
+</body>
+</html>

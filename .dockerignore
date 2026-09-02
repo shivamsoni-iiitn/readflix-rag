@@ -1,0 +1,50 @@
+.git
+.gitignore
+
+# Environment / secrets
+.env
+.env.*
+.env.local
+!.env.example
+
+
+# Python
+.deepeval/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+readflix
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+.logfire
+
+# Local databases / vector stores
+qdrant_storage/
+chroma_db/
+*.db
+*.sqlite
+*.sqlite3
+
+# Evaluation outputs
+evals/results.json
+evals/metric_results.json
+
+# Generated / temporary files
+processed_data/
+tmp/
+temp/
+
+# Personal Folders
+evals/
+workflow.py
+demo.ipynb
+
+# OS
+.DS_Store
+Thumbs.db
