@@ -38,7 +38,7 @@ evals/metric_results.json
 processed_data/
 tmp/
 temp/
-
+models/
 # Personal Folders
 evals/
 workflow.py

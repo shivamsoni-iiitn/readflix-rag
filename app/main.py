@@ -19,12 +19,14 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from app.middleware.rate_limit import limiter
 from app.guardrails import aws_check
-
+from app.services.retrieval.ranking_service import download_flashrank_model
 
 app=FastAPI(title="READFLIX LIBRARY RAG API")
 
 @app.on_event("startup")
 async def startup():
+    download_flashrank_model()
+    
     app.state.checkpointer, app.state.db_conn = await init_db()
     app.state.rag_agent = create_rag_agent(app.state.checkpointer)
     

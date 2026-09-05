@@ -32,3 +32,4 @@ slowapi==0.1.10
 
 
 boto3==1.43.85
+psycopg[binary]==3.3.4

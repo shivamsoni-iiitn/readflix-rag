@@ -32,8 +32,8 @@ class Settings:
     GROQ_MODEL = "llama-3.3-70b-versatile"
     OPENAI_MODEL = "gpt-5-nano"
 
-    AWS_GUARDRAIL_ID: str = os.getenv("AWS_GUARDRAIL_ID")
-    AWS_GUARDRAIL_VERSION: str = os.getenv("AWS_GUARDRAIL_VERSION")
+    AWS_GUARDRAIL_ID: str = os.getenv("GUARDRAIL_ID")
+    AWS_GUARDRAIL_VERSION: str = os.getenv("GUARDRAIL_VERSION")
     AWS_REGION: str = os.getenv("AWS_DEFAULT_REGION")
 
     LANGCHAIN_TRACING_V2 = os.getenv("LANGCHAIN_TRACING_V2", "true")
