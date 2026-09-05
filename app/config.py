@@ -32,10 +32,14 @@ class Settings:
     GROQ_MODEL = "llama-3.3-70b-versatile"
     OPENAI_MODEL = "gpt-5-nano"
 
+    AWS_GUARDRAIL_ID: str = os.getenv("AWS_GUARDRAIL_ID")
+    AWS_GUARDRAIL_VERSION: str = os.getenv("AWS_GUARDRAIL_VERSION")
+    AWS_REGION: str = os.getenv("AWS_DEFAULT_REGION")
+
     LANGCHAIN_TRACING_V2 = os.getenv("LANGCHAIN_TRACING_V2", "true")
     LANGCHAIN_API_KEY = os.getenv("LANGCHAIN_API_KEY") or os.getenv("LANGSMITH_API_KEY") or ""
     LANGCHAIN_PROJECT = os.getenv("LANGCHAIN_PROJECT") or os.getenv("LANGSMITH_PROJECT") or "rag_readflix"
     LANGCHAIN_ENDPOINT = os.getenv("LANGCHAIN_ENDPOINT") or os.getenv("LANGSMITH_ENDPOINT") or "https://api.smith.langchain.com"
-
+    DATABASE_URL = os.getenv("DATABASE_URL") or os.getenv("POSTGRES_URL")
 
 settings = Settings()

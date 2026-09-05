@@ -160,7 +160,7 @@ async function sendMessage() {
             error.message ===
             "RATE_LIMIT"
                 ? "You're sending messages too quickly. Please try again in a moment."
-                : "I couldn't connect to the READFLIX backend. Please try again.";
+                : "I can't answer right now. Please try again.";
 
         addMessage(
             "assistant",

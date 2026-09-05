@@ -6,7 +6,10 @@ logfire.configure(token=os.getenv("LOGFIRE_TOKEN"))
 
 # Now safe to import app modules - logfire is already active
 from fastapi import FastAPI, Response
-from app.agents.graph import rag_agent, checkpointer
+
+from app.agents.graph import create_rag_agent
+from app.db.postgres import init_db
+
 from pydantic import BaseModel
 from typing import Optional
 from fastapi.templating import Jinja2Templates
@@ -15,10 +18,16 @@ from fastapi import Request
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from app.middleware.rate_limit import limiter
-from app.guardrails import check_input
+from app.guardrails import aws_check
 
 
 app=FastAPI(title="READFLIX LIBRARY RAG API")
+
+@app.on_event("startup")
+async def startup():
+    app.state.checkpointer, app.state.db_conn = await init_db()
+    app.state.rag_agent = create_rag_agent(app.state.checkpointer)
+    
 app.state.limiter = limiter
 app.add_exception_handler(
     RateLimitExceeded,
@@ -60,7 +69,7 @@ async def query(request: Request, data: QueryRequest):
     q = data.q
     thread_id = data.thread_id
 
-    guard = await check_input(q)
+    guard = await aws_check(q)
 
     if guard["action"] != "allow":
         return {
@@ -80,7 +89,7 @@ async def query(request: Request, data: QueryRequest):
     config = {"configurable": {"thread_id": thread_id}}
 
     try:
-        final_output = await rag_agent.ainvoke(
+        final_output = await app.state.rag_agent.ainvoke(
             initial_state,
             config=config,
         )
@@ -102,7 +111,7 @@ async def query(request: Request, data: QueryRequest):
 @app.delete("/thread/{thread_id}")
 async def delete_thread(thread_id: str):
     try:
-        await checkpointer.adelete_thread(thread_id)
+        await app.state.checkpointer.adelete_thread(thread_id)
         logfire.info(
             "🗑️ Thread deleted",
             thread_id=thread_id,

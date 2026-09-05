@@ -1,10 +1,9 @@
 from langgraph.graph import StateGraph,START,END
-from langgraph.checkpoint.memory import MemorySaver
 from app.agents.state import AgentState
 from app.agents.nodes.palnner import planner_node
 from app.agents.nodes.retriever import retrieve_node
 from app.agents.nodes.responder import generate_node
-
+from app.config import settings
 workflow= StateGraph(AgentState)
 
 workflow.add_node("planner", planner_node)
@@ -40,8 +39,10 @@ workflow.add_edge("responder", END)
 
 
 # MemorySaver allows the agent to remember conversations based on 'thread_id'
-checkpointer = MemorySaver()
+# checkpointer = MemorySaver()
 
-
-# 4. Compile the Graph with Memory
-rag_agent = workflow.compile(checkpointer=checkpointer)
+#  Compile the Graph with Memory
+# rag_agent = workflow.compile(checkpointer=checkpointer)
+def create_rag_agent(checkpointer):
+    rag_agent = workflow.compile(checkpointer=checkpointer)
+    return rag_agent

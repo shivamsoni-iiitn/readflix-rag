@@ -13,6 +13,8 @@ __pycache__/
 venv/
 readflix
 
+.github
+
 # IDE
 .vscode/
 .idea/
@@ -45,3 +47,9 @@ demo.ipynb
 # OS
 .DS_Store
 Thumbs.db
+
+#Old guardrails
+guardrails/input.py
+guardrails/output.py
+guardrails/policy.py
+guardrails/validators.py

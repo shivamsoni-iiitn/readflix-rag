@@ -1,2 +1,1 @@
-from .input import check_input
-from .output import validate_output
+from .aws import check as aws_check

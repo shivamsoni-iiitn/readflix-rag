@@ -24,10 +24,10 @@ def _probe_openai():
         logfire.warning(f"OpenAI probe failed: {e}, Will use fallback model")
         return None        
     
-def _load_fallback():
-    from sentence_transformers import SentenceTransformer
-    logfire.info("Loading sentence transformer fallback (all-mpnet-base-v2, 768 dim)")
-    return SentenceTransformer("all-mpnet-base-v2")
+# def _load_fallback():
+#     from sentence_transformers import SentenceTransformer
+#     logfire.info("Loading sentence transformer fallback (all-mpnet-base-v2, 768 dim)")
+#     return SentenceTransformer("all-mpnet-base-v2")
 
 def _init():
     global _active_model,_model_type
@@ -38,8 +38,12 @@ def _init():
         _active_model = openai
         _model_type="openai"
     else:
-        _active_model= _load_fallback()
-        _model_type= "fallback"
+        raise RuntimeError(
+            "OpenAI embedding service is unavailable. "
+            "No fallback embedding model is configured."
+        )
+        # _active_model= _load_fallback()
+        # _model_type= "fallback"
         
 def get_embedding_dim() -> int:
     if _model_type is None:
