@@ -31,7 +31,7 @@ llm_router = Router(
 _llm_limit = asyncio.Semaphore(5)
 
 
-async def generate(messages: list[dict], feature: str = "rag",max_tokens: int = 200):
+async def generate(messages: list[dict], feature: str = "rag"):
     start = time.perf_counter()
 
     logfire.info("⏳ LLM request waiting for slot", feature=feature)
@@ -42,7 +42,6 @@ async def generate(messages: list[dict], feature: str = "rag",max_tokens: int = 
                 response = await llm_router.acompletion(
                     model="primary",
                     messages=messages,
-                    max_tokens=max_tokens,
                 )
 
                 usage = getattr(response, "usage", None)
@@ -59,4 +58,5 @@ async def generate(messages: list[dict], feature: str = "rag",max_tokens: int = 
 
             except Exception:
                 logfire.exception("❌ LLM Gateway failed", feature=feature)
+                
                 raise

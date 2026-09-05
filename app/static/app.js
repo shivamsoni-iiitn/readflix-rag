@@ -124,7 +124,7 @@ async function sendMessage() {
 
         const answer =
             data.answer ||
-            "I couldn't generate an answer.";
+            "I can't answer right now.";
 
         addMessage(
             "assistant",
