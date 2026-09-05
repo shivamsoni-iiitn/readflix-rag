@@ -14,7 +14,7 @@ def retrieve_node(state: AgentState):
     with logfire.span("🔍 Knowledge Retrieval"):
         logfire.info(f"Searching Qdrant for: {query}")
 
-        raw_results = search_enterprise_knowledge(query, limit=15)
+        raw_results = search_enterprise_knowledge(query, limit=5)
 
         logfire.info(
             f"Retrieved {len(raw_results)} candidates from Vector DB"
@@ -26,7 +26,7 @@ def retrieve_node(state: AgentState):
             reranked_contents = rerank_documents(
                 query,
                 doc_content,
-                top_n=5,
+                top_n=2,
             )
 
             logfire.info(
